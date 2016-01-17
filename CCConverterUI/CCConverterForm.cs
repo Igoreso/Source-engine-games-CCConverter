@@ -1,54 +1,61 @@
-﻿namespace CCConverterUI
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Windows.Forms;
+using CCTools;
+using Ionic.Utils;
+
+namespace CCConverterUI
 {
-    using System;
-    using System.Diagnostics;
-    using System.Drawing;
-    using System.IO;
-    using System.Windows.Forms;
-    using CCTools;   
-
-    public partial class CCConverterForm : Form
+    public partial class CcConverterForm : Form
     {
-        private readonly string AppName;
-
-        private const string AppSettingsFileName = "ccconverter.cfg";
-
-        private readonly Color DimmedTextColor = Color.LightGray;
-
-        public CCConverterForm()
+        public CcConverterForm()
         {
             InitializeComponent();
-            RegisterPrettifyingEvents();
-            RestorePaths();
-            this.AppName = this.Text; // save form name to use in message boxes            
+            RestoreSettings();
+            
+            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
+            Text = Constants.AppName;
         }
         
-        private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void aboutAppLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            MessageBox.Show(Constants.ContactInfo, this.AppName, MessageBoxButtons.OK, MessageBoxIcon.None);
+            MessageBox.Show(Constants.ContactInfo, Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.None);
+        }
+
+        private void aboutMarkerLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            MessageBox.Show(string.Format(Constants.NewLineMarkerInfoFormat, newLineMarker.Text), Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.None);
+        }
+
+        private void linceseLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            MessageBox.Show(Constants.LicenseText, Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.None);
         }
 
         private void oldEnglishFileDialogButton_Click(object sender, EventArgs e)
         {
-            if (this.oldEnglishFileDialog.ShowDialog() == DialogResult.OK)
+            if (oldEnglishFileDialog.ShowDialog() == DialogResult.OK)
             {
-                this.pathToOldEnglishFile.Text = this.oldEnglishFileDialog.FileName;
+                pathToOldEnglishFile.Text = oldEnglishFileDialog.FileName;
             }
         }
 
         private void oldLocalizedFileDialogButton_Click(object sender, EventArgs e)
         {
-            if (this.oldLocalizedFileDialog.ShowDialog() == DialogResult.OK)
+            if (oldLocalizedFileDialog.ShowDialog() == DialogResult.OK)
             {
-                this.pathToOldLocalizedFile.Text = this.oldLocalizedFileDialog.FileName;
+                pathToOldLocalizedFile.Text = oldLocalizedFileDialog.FileName;
             }
         }
 
         private void newEnglishFileDialogButton_Click(object sender, EventArgs e)
         {
-            if (this.newEnglishFileDialog.ShowDialog() == DialogResult.OK)
+            if (newEnglishFileDialog.ShowDialog() == DialogResult.OK)
             {
-                this.pathToNewEnglishFile.Text = this.newEnglishFileDialog.FileName;
+                pathToNewEnglishFile.Text = newEnglishFileDialog.FileName;
             }
         }
 
@@ -58,74 +65,71 @@
             // http://stackoverflow.com/a/580706
             // http://dotnetzip.codeplex.com/SourceControl/changeset/view/29499#432677
 
-            var folderDialog = new Ionic.Utils.FolderBrowserDialogEx();
-            folderDialog.Description = "Select output directory";
-            folderDialog.ShowNewFolderButton = true;
-            folderDialog.ShowEditBox = true;
-            folderDialog.SelectedPath = this.outputDirectory.Text;
-            folderDialog.ShowFullPathInEditBox = true;
-            folderDialog.RootFolder = System.Environment.SpecialFolder.MyComputer;
+            var folderDialog = new FolderBrowserDialogEx
+            {
+                Description = "Select output directory",
+                ShowNewFolderButton = true,
+                ShowEditBox = true,
+                SelectedPath = outputDirectory.Text,
+                ShowFullPathInEditBox = true,
+                RootFolder = Environment.SpecialFolder.MyComputer
+            };
 
             if (folderDialog.ShowDialog() == DialogResult.OK)
             {
-                this.outputDirectory.Text = folderDialog.SelectedPath;
+                outputDirectory.Text = folderDialog.SelectedPath;
             }
         }
-
-        private void autofillOutputDirectoryButton_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(this.pathToNewEnglishFile.Text))
-            {
-                this.outputDirectory.Text = string.Empty;
-            }
-            else
-            {
-                this.outputDirectory.Text = Path.GetDirectoryName(this.pathToNewEnglishFile.Text);
-            }
-        }
-
+        
         private void generateButton_Click(object sender, EventArgs e)
         {
-            var converter = new CCConverter()
+            var converter = new CcConverter
             {
-                PathToOldEnglishFile = this.pathToOldEnglishFile.Text,
-                PathToOldLocalizedFile = this.pathToOldLocalizedFile.Text,
-                PathToNewEnglishFile = this.pathToNewEnglishFile.Text,
-                OutputDirectory = this.outputDirectory.Text
+                PathToOldEnglishFile = pathToOldEnglishFile.Text,
+                PathToOldLocalizedFile = pathToOldLocalizedFile.Text,
+                PathToNewEnglishFile = pathToNewEnglishFile.Text,
+                OutputDirectory = outputDirectory.Text,
+                NewLineMarker = newLineMarker.Text
             };
 
             if (!converter.Validate())
             {
-                MessageBox.Show("Not all paths are valid.", this.AppName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(Constants.InvalidPaths, Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                SavePaths();
+                SaveSettings();
                 var result = converter.Generate();
-                MessageBox.Show(Constants.OkMessage, this.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(string.Format(Constants.OkMessageFormat, newLineMarker.Text), Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Process.Start("explorer.exe", "/select, " + result.GeneratedFilePath);
             }
             catch (Exception ex)
             {
                 var message = string.Format(Constants.ErrorMessageFormat, ex.Message, ex.StackTrace);
-                MessageBox.Show(message, this.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(message, Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }            
         }
 
-        private void SavePaths()
+        private void CcConverterForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            SaveSettings();
+        }
+
+        private void SaveSettings()
         {
             try
             {
-                var settingsFile = this.GetSettingsFilePath();
+                var settingsFile = GetSettingsFilePath();
 
                 var filesPaths = new[]
                 {
-                    this.pathToOldEnglishFile.Text, 
-                    this.pathToOldLocalizedFile.Text,
-                    this.pathToNewEnglishFile.Text,
-                    this.outputDirectory.Text
+                    pathToOldEnglishFile.Text, 
+                    pathToOldLocalizedFile.Text,
+                    pathToNewEnglishFile.Text,
+                    outputDirectory.Text,
+                    newLineMarker.Text
                 };
 
                 if (File.Exists(settingsFile))
@@ -135,37 +139,36 @@
 
                 File.WriteAllLines(settingsFile, filesPaths);
             }
+            // we don't care if we couldn't save settings
+            // ReSharper disable once EmptyGeneralCatchClause
             catch (Exception)
             {
             }
         }
 
-        private void RestorePaths()
+        private void RestoreSettings()
         {
-            this.pathToOldEnglishFile.Text = string.Empty;
-            this.pathToOldLocalizedFile.Text = string.Empty;
-            this.pathToNewEnglishFile.Text = string.Empty;
-            this.outputDirectory.Text = string.Empty;
-
             try
             {
-                var settingsFile = this.GetSettingsFilePath();
-                if (!File.Exists(settingsFile))
-                {
-                    return;
-                }
+                var settingsFile = GetSettingsFilePath();
 
-                var lines = File.ReadAllLines(settingsFile);
-                if (lines.Length < 4)
-                {
-                    return;
-                }
+                var lines =
+                    File.Exists(settingsFile)
+                        ? File.ReadAllLines(settingsFile)
+                        : Enumerable.Empty<string>();
 
-                this.pathToOldEnglishFile.Text = lines[0];
-                this.pathToOldLocalizedFile.Text = lines[1];
-                this.pathToNewEnglishFile.Text = lines[2];
-                this.outputDirectory.Text = lines[3];
+                // ReSharper disable PossibleMultipleEnumeration
+
+                pathToOldEnglishFile.Text = lines.ElementAtOrDefault(0) ?? string.Empty;
+                pathToOldLocalizedFile.Text = lines.ElementAtOrDefault(1) ?? string.Empty;
+                pathToNewEnglishFile.Text = lines.ElementAtOrDefault(2) ?? string.Empty;
+                outputDirectory.Text = lines.ElementAtOrDefault(3) ?? string.Empty;
+                newLineMarker.Text = lines.ElementAtOrDefault(4) ?? Constants.DefaultNewLineMarker;
+
+                // ReSharper restore PossibleMultipleEnumeration
             }
+            // we don't care if we couldn't restore
+            // ReSharper disable once EmptyGeneralCatchClause
             catch (Exception)
             {
             }
@@ -176,37 +179,12 @@
             // any part here can possibly throw exception,
             // but we only use this method inside try/catch blocks,
             // so this is fine.
-            var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var appPath = Assembly.GetExecutingAssembly().Location;
             var appDir = Path.GetDirectoryName(appPath);
-            var settingsFile = Path.Combine(appDir, AppSettingsFileName);
+
+            // ReSharper disable once AssignNullToNotNullAttribute
+            var settingsFile = Path.Combine(appDir, Constants.AppSettingsFileName);
             return settingsFile;
-        }
-
-        private void RegisterPrettifyingEvents()
-        {
-            RegisterPrettifyingEvents(pathToOldEnglishFile);
-            RegisterPrettifyingEvents(pathToOldLocalizedFile);
-            RegisterPrettifyingEvents(pathToNewEnglishFile);
-            RegisterPrettifyingEvents(outputDirectory);
-        }
-
-        private void RegisterPrettifyingEvents(TextBoxBase box)
-        {
-            box.ForeColor = DimmedTextColor;
-
-            box.Enter += (s, e) => { box.ForeColor = Color.Black; };
-
-            box.Leave += (s, e) => { box.ForeColor = DimmedTextColor; };
-
-            box.MouseEnter += (s, e) => { box.ForeColor = Color.Black; };
-
-            box.MouseLeave += (s, e) =>
-            {
-                if (!box.Focused)
-                {
-                    box.ForeColor = DimmedTextColor;
-                }
-            };
         }
     }
 }

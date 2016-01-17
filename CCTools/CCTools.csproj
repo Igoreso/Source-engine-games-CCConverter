@@ -35,8 +35,10 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CCConvertor.cs" />
+    <Compile Include="CcConverterResult.cs" />
+    <Compile Include="CcConverter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TextPair.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

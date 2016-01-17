@@ -10,7 +10,7 @@ namespace CCConverterUI
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new CCConverterForm());
+            Application.Run(new CcConverterForm());
         }
     }
 }

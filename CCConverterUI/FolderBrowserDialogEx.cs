@@ -1,4 +1,6 @@
-﻿//
+﻿// ReSharper disable All
+
+//
 // Taken from:
 // http://stackoverflow.com/a/580706
 // http://dotnetzip.codeplex.com/SourceControl/changeset/view/29499#432677
