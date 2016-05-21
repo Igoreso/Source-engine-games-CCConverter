@@ -174,8 +174,9 @@
 
         private string GetGeneratedFilePath()
         {
-            var ext = Path.GetExtension(PathToNewEnglishFile);
-            var name = "generated_" + DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-ffff") + ext;
+            var fileName = Path.GetFileName(PathToOldLocalizedFile);
+            var ext = Path.GetExtension(PathToOldLocalizedFile);
+            var name = string.Format("{0}_generated_{1}{2}", fileName, DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss-ffff"), ext);
             var outputPath = Path.Combine(OutputDirectory, name);
             return outputPath;
         }

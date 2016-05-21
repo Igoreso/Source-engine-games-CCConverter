@@ -37,6 +37,11 @@ namespace CCConverterUI
 
         private void oldEnglishFileDialogButton_Click(object sender, EventArgs e)
         {
+            if (!string.IsNullOrWhiteSpace(pathToOldEnglishFile.Text))
+            {
+                oldEnglishFileDialog.InitialDirectory = Path.GetDirectoryName(pathToOldEnglishFile.Text);
+            }
+
             if (oldEnglishFileDialog.ShowDialog() == DialogResult.OK)
             {
                 pathToOldEnglishFile.Text = oldEnglishFileDialog.FileName;
@@ -45,6 +50,11 @@ namespace CCConverterUI
 
         private void oldLocalizedFileDialogButton_Click(object sender, EventArgs e)
         {
+            if (!string.IsNullOrWhiteSpace(pathToOldLocalizedFile.Text))
+            {
+                oldLocalizedFileDialog.InitialDirectory = Path.GetDirectoryName(pathToOldLocalizedFile.Text);
+            }
+
             if (oldLocalizedFileDialog.ShowDialog() == DialogResult.OK)
             {
                 pathToOldLocalizedFile.Text = oldLocalizedFileDialog.FileName;
@@ -53,6 +63,11 @@ namespace CCConverterUI
 
         private void newEnglishFileDialogButton_Click(object sender, EventArgs e)
         {
+            if (!string.IsNullOrWhiteSpace(pathToNewEnglishFile.Text))
+            {
+                newEnglishFileDialog.InitialDirectory = Path.GetDirectoryName(pathToNewEnglishFile.Text);
+            }
+
             if (newEnglishFileDialog.ShowDialog() == DialogResult.OK)
             {
                 pathToNewEnglishFile.Text = newEnglishFileDialog.FileName;
