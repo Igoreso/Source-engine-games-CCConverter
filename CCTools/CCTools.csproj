@@ -37,6 +37,7 @@
   <ItemGroup>
     <Compile Include="CcConverterResult.cs" />
     <Compile Include="CcConverter.cs" />
+    <Compile Include="CcRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TextPair.cs" />
   </ItemGroup>

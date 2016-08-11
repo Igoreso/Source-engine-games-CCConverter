@@ -7,8 +7,8 @@ namespace CCTools
 
         public TextPair(string englishText)
         {
-            this.EnglishText = englishText;
-            this.LocalizedText = null;
+            EnglishText = englishText;
+            LocalizedText = null;
         }
     }
 }

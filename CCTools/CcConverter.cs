@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
-    using System.Text.RegularExpressions;
 
     public class CcConverter
     {
@@ -18,20 +17,10 @@
 
         public string NewLineMarker { get; set; }
 
+        public bool IgnoreCase { get; set; }
+
         // UCS-2 Little Endian
         private static readonly Encoding CcEncoding = Encoding.Unicode;
-
-        // regex itself:
-        // "([A-Za-z0-9\.\/' _-]+)"\s+"(.+)"
-        // you need to escape all quotes and all slashes for it to be used in C# code.
-        // use tools like https://www.debuggex.com/ to understand what's going on.
-        // basically it finds pairs such as
-        // "sounds/etc/sound_1.wav"     "any text, even with escaped quotes \"\" inside"
-        // when you do Match(), result's Groups is the following:
-        // Groups[0] is whole match, i.e. pair;
-        // Groups[1] is sound key;
-        // Groups[2] is text
-        private static readonly Regex CcPairRegex = new Regex("\"([A-Za-z0-9\\.\\/' _-]+)\"\\s+\"(.+)\"");
 
         public bool Validate()
         {
@@ -58,21 +47,25 @@
                     ? "// ###"
                     : NewLineMarker;
 
+            // lines that are borken due to a mistake in the old version
+            var brokenLines = new List<string>();
+
             var oldEnglishLines = File.ReadAllLines(PathToOldEnglishFile, CcEncoding);
             var oldLocalizedLines = File.ReadAllLines(PathToOldLocalizedFile, CcEncoding);
 
-            // key is sound name, value is pair of:
+            // key is files's key (sound name or smth else),
+            // value is pair of:
             // english text from old file + localized text from old localized file
             var keyToTextPairDict = new Dictionary<string, TextPair>(oldEnglishLines.Length);
 
-            // store english pairs
+            // associate keys with values (english lines)
             foreach (var line in oldEnglishLines)
             {
-                var match = CcPairRegex.Match(line);
-                if (match.Groups.Count == 3)
+                var ccRecord = new CcRecord(line);
+                if (ccRecord.IsValid)
                 {
-                    var key = match.Groups[1].Value;
-                    var englishText = match.Groups[2].Value;
+                    var key = ccRecord.Key;
+                    var englishText = ccRecord.Value;
                     
                     // duplicate key! nothing I can do, that's the problem in the file.
                     // example: in old CCs there were 3 lines for grd01_postlobbygoodbye01.wav.
@@ -85,13 +78,14 @@
                 }
             }
 
-            // find appropriate localized text
+            // find appropriate localized text for keys.
+            // keys should be exactly same, otherwise someone did a bad job.
             foreach (var line in oldLocalizedLines)
             {
-                var match = CcPairRegex.Match(line);
-                if (match.Groups.Count == 3)
-                {                   
-                    var key = match.Groups[1].Value;
+                var ccRecord = new CcRecord(line);
+                if (ccRecord.IsValid)
+                {
+                    var key = ccRecord.Key;
 
                     // localized files are supposed to have the same lines as original.
                     // if there is new line in localized file - something is wrong.
@@ -103,17 +97,23 @@
                     }
 
                     var pair = keyToTextPairDict[key];
-                    pair.LocalizedText = match.Groups[2].Value;
+                    pair.LocalizedText = ccRecord.Value;
                 }
             }
 
             // key is english text from old file, value is localized text from old localized file
             var localizationDict = new Dictionary<string, string>(keyToTextPairDict.Values.Count);
 
+            // associate old english lines with old localized lines
             foreach (var pair in keyToTextPairDict.Values)
             {
                 var key = pair.EnglishText;
                 var value = pair.LocalizedText;
+
+                if (IgnoreCase)
+                {
+                    key = key.ToLowerInvariant();
+                }
 
                 // some text lines may repeat. I cannot easily determite from C# code if 
                 // someone localized those lines differently (for the sake of better localization),
@@ -134,17 +134,31 @@
             {
                 var newLine = line;
 
-                var match = CcPairRegex.Match(line);
-                if (match.Groups.Count == 3)
+                var ccRecord = new CcRecord(line);
+                if (ccRecord.IsValid)
                 {
-                    var englishText = match.Groups[2].Value;
+                    var englishText = ccRecord.Value;
+                    var key = englishText;
 
-                    if (localizationDict.ContainsKey(englishText))
+                    if (IgnoreCase)
                     {
-                        var localizedText = localizationDict[englishText];                        
+                        key = key.ToLowerInvariant();
+                    }
+
+                    if (localizationDict.ContainsKey(key))
+                    {
+                        var localizedText = localizationDict[key];                        
                         if (localizedText != null)
                         {
-                            newLine = line.Replace(englishText, localizedText);
+                            // old method - also replaces in value, which is a bug
+                            //newLine = line.Replace(englishText, localizedText);
+
+                            if (ccRecord.Key.Contains(ccRecord.Value))
+                            {
+                                brokenLines.Add(ccRecord.Key);
+                            }
+
+                            newLine = ccRecord.ReplaceValueWith(localizedText);
                         }                        
                         else
                         {
@@ -168,7 +182,12 @@
             var outputPath = GetGeneratedFilePath();
             File.WriteAllLines(outputPath, newLocalizedLines, CcEncoding);
 
-            var result = new CcConverterResult { GeneratedFilePath = outputPath };
+            var result = new CcConverterResult
+            {
+                GeneratedFilePath = outputPath,
+                BrokenLines = brokenLines
+            };
+
             return result;
         }
 

@@ -167,7 +167,7 @@
             this.generateButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.generateButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.generateButton.Location = new System.Drawing.Point(18, 340);
+            this.generateButton.Location = new System.Drawing.Point(18, 366);
             this.generateButton.Margin = new System.Windows.Forms.Padding(3, 15, 3, 3);
             this.generateButton.Name = "generateButton";
             this.generateButton.Size = new System.Drawing.Size(543, 44);
@@ -194,7 +194,7 @@
             this.aboutAppLink.AutoSize = true;
             this.aboutAppLink.DisabledLinkColor = System.Drawing.Color.Blue;
             this.aboutAppLink.LinkColor = System.Drawing.Color.Blue;
-            this.aboutAppLink.Location = new System.Drawing.Point(467, 393);
+            this.aboutAppLink.Location = new System.Drawing.Point(467, 419);
             this.aboutAppLink.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.aboutAppLink.Name = "aboutAppLink";
             this.aboutAppLink.Size = new System.Drawing.Size(35, 13);
@@ -249,7 +249,7 @@
             // 
             // aboutMarkerLink
             // 
-            this.aboutMarkerLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.aboutMarkerLink.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.aboutMarkerLink.AutoSize = true;
             this.aboutMarkerLink.DisabledLinkColor = System.Drawing.Color.Blue;
             this.aboutMarkerLink.LinkColor = System.Drawing.Color.Blue;
@@ -269,7 +269,7 @@
             this.linceseLink.AutoSize = true;
             this.linceseLink.DisabledLinkColor = System.Drawing.Color.Blue;
             this.linceseLink.LinkColor = System.Drawing.Color.Blue;
-            this.linceseLink.Location = new System.Drawing.Point(514, 393);
+            this.linceseLink.Location = new System.Drawing.Point(514, 419);
             this.linceseLink.Margin = new System.Windows.Forms.Padding(6, 0, 6, 0);
             this.linceseLink.Name = "linceseLink";
             this.linceseLink.Size = new System.Drawing.Size(44, 13);
@@ -283,7 +283,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(579, 421);
+            this.ClientSize = new System.Drawing.Size(579, 447);
             this.Controls.Add(this.linceseLink);
             this.Controls.Add(this.aboutMarkerLink);
             this.Controls.Add(this.newLineMarker);

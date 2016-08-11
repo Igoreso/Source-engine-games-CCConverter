@@ -104,6 +104,7 @@ namespace CCConverterUI
                 PathToOldLocalizedFile = pathToOldLocalizedFile.Text,
                 PathToNewEnglishFile = pathToNewEnglishFile.Text,
                 OutputDirectory = outputDirectory.Text,
+                //IgnoreCase = true,
                 NewLineMarker = newLineMarker.Text
             };
 
@@ -117,7 +118,16 @@ namespace CCConverterUI
             {
                 SaveSettings();
                 var result = converter.Generate();
+                
                 MessageBox.Show(string.Format(Constants.OkMessageFormat, newLineMarker.Text), Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                if (result.BrokenLines.Any())
+                {
+                    var message = "The following lines were broken if you used previous version of this tool:\r\n\r\n" +
+                                  string.Join("\r\n", result.BrokenLines);
+                    MessageBox.Show(message, Constants.AppName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+
                 Process.Start("explorer.exe", "/select, " + result.GeneratedFilePath);
             }
             catch (Exception ex)
